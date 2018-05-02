@@ -1,4 +1,6 @@
-FROM ubuntu:14.04
+FROM ubuntu:18.04
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 MAINTAINER diogocezar/php7 Diogo Cezar <diogo@diogocezar.com>
 
@@ -19,42 +21,31 @@ RUN apt-get install -y apache2
 # GIT #
 RUN apt-get install -y git
 
-# SSH #
-RUN apt-get install -y openssh-server
-
-# NANO #
-RUN apt-get install -y nano
-
-# UNZIP #
-RUN apt-get install -y unzip
-
-# BASH-COMPLETION #
-RUN apt-get install -y bash-completion
-
 # SUPERVISOR #
 RUN apt-get install -y nano supervisor
 
-# CURL #
-RUN apt-get install -y curl
+# DIALOG APT-UTILS #
+RUN apt-get install dialog apt-utils -y
 
-# COMMON #
-RUN apt-get -y install software-properties-common
-
-# PHP 7 #
-RUN add-apt-repository ppa:ondrej/php -y && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && apt-get update
+# PHP #
 RUN apt-get install -y --allow-unauthenticated \
-    php7.0 \
+    php \
     php-gettext \
-    php7.0-curl \
-    php7.0-gd \
-    php7.0-dev \
-    php7.0-xmlrpc \
-    php7.0-intl \
-    php7.0-mcrypt \
-    php7.0-mysql \
-    php7.0-cli \
-    libapache2-mod-php7.0 \
-    && apt-get clean
+    libapache2-mod-php \
+    php-common \
+    php-pear \
+    php-mbstring \
+    php-curl \
+    php-gd \
+    php-dev \
+    php-xmlrpc \
+    php-intl \
+    php-mysql \
+    php-cli \
+    && apt-get clean 
+
+# TIMEZONE #
+RUN echo "America/Sao_Paulo" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
 
 # COMPOSER #
 RUN curl -sS https://getcomposer.org/installer | php \
@@ -75,7 +66,7 @@ RUN rm -Rf /var/www/html
 RUN mkdir -p /var/lock/apache2 /var/run/apache2
 RUN echo "ServerName 127.0.0.1" >> /etc/apache2/apache2.conf
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
-RUN a2ensite 000-default.conf && a2enmod rewrite && a2enmod php7.0
+RUN a2ensite 000-default.conf && a2enmod rewrite && a2enmod php7.2
 
 ENV APACHE_RUN_USER    www-data
 ENV APACHE_RUN_GROUP   www-data
@@ -88,21 +79,7 @@ ENV APACHE_LOG_DIR     /var/log/apache2
 # PHP #
 #######
 
-COPY php.ini /etc/php/7.0/apache2/php.ini
-
-#######
-# SSH #
-#######
-
-RUN mkdir /var/run/sshd
-RUN echo 'root:root' | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-# SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-ENV NOTVISIBLE "in users profile"
-RUN echo "export VISIBLE=now" >> /etc/profile
+COPY php.ini /etc/php/7.2/apache2/php.ini
 
 ##############
 # SUPERVISOR #
