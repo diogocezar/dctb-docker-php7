@@ -1,26 +1,23 @@
 dctb-mysql:
   container_name: dctb-mysql
-  image: mysql
+  image: mysql:5.7
   volumes:
     - "./mysql:/var/lib/mysql"
   environment:
     MYSQL_ROOT_PASSWORD : root
     MYSQL_DATABASE      : base
-    MYSQL_USER          : root
-    MYSQL_PASSWORD      : root
+    MYSQL_USER          : dctb-root
+    MYSQL_PASSWORD      : dctb-root
 dctb-phpmyadmin:
   container_name: dctb-phpmyadmin
-  image: corbinu/docker-phpmyadmin
+  image: phpmyadmin/phpmyadmin
   links:
-    - dctb-mysql:mysql
+    - dctb-mysql:db
   ports:
     - "9999:80"
-  environment:
-    MYSQL_USERNAME      : root
-    MYSQL_ROOT_PASSWORD : root
 dctb-php7:
   container_name: dctb-php7
-  image: diogocezar/php7
+  image: diogocezar/dctb-docker-php7
   volumes:
     - "./www:/var/www"
   links:
